@@ -13,6 +13,7 @@ func main() {
 		panic(watcher_err)
 	}
 	defer watcher.Close()
+
 	for _, arg := range os.Args[1:] {
 		err := watcher.Add(arg)
 		if err != nil {
@@ -22,6 +23,7 @@ func main() {
 
 	fmt.Fprintf(os.Stderr, "wait for changes...\n")
 	event, ok := <-watcher.Events
+
 	if ok == false {
 		panic(fmt.Errorf("event not ok"))
 	}
