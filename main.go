@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 
@@ -14,10 +15,21 @@ func main() {
 	}
 	defer watcher.Close()
 
-	for _, arg := range os.Args[1:] {
-		err := watcher.Add(arg)
-		if err != nil {
-			panic(err)
+	if os.Args[1] == "-" {
+		stdin := bufio.NewScanner(os.Stdin)
+		for stdin.Scan() {
+			file := stdin.Text()
+			err := watcher.Add(file)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "ignore %s\n", file)
+			}
+		}
+	} else {
+		for _, arg := range os.Args[1:] {
+			err := watcher.Add(arg)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 
