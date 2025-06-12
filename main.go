@@ -2,38 +2,48 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
 
 	"github.com/fsnotify/fsnotify"
 )
 
+func watch(watcher *fsnotify.Watcher, file *string, verbose *bool) {
+	err := watcher.Add(*file)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ignore %s\n", *file)
+		return
+	}
+	if *verbose == true {
+		fmt.Fprintf(os.Stderr, "watch %s\n", *file)
+	}
+}
+
 func main() {
+	verbose := flag.Bool("verbose", false, "more output (default: false)")
+	flag.Parse()
+
 	watcher, watcher_err := fsnotify.NewWatcher()
 	if watcher_err != nil {
 		panic(watcher_err)
 	}
 	defer watcher.Close()
 
-	if os.Args[1] == "-" {
+	for _, arg := range flag.Args() {
+		if arg != "-" {
+			watch(watcher, &arg, verbose)
+			continue
+		}
+
 		stdin := bufio.NewScanner(os.Stdin)
 		for stdin.Scan() {
-			file := stdin.Text()
-			err := watcher.Add(file)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "ignore %s\n", file)
-			}
-		}
-	} else {
-		for _, arg := range os.Args[1:] {
-			err := watcher.Add(arg)
-			if err != nil {
-				panic(err)
-			}
+			line := stdin.Text()
+			watch(watcher, &line, verbose)
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "wait for changes...\n")
+	fmt.Fprintf(os.Stderr, "[%4d files] wait for changes...\n", len(watcher.WatchList()))
 	event, ok := <-watcher.Events
 
 	if ok == false {
