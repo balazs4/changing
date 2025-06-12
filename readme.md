@@ -1,6 +1,6 @@
 # changing
 
-> A simple command-line tool to watch for changes in files or directories and exit the process upon detection.
+> A simple command-line tool to watch for changes in files and exit the process upon detection.
 
 ## description
 
